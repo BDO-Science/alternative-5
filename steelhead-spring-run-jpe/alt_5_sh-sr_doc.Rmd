@@ -9,10 +9,11 @@ output: word_document
 library(tidyverse)
 library(flextable)
 library(here)
+library(officer)
 
 project <- here('steelhead-spring-run-jpe') #setting path for any files
 source(here(project,'steelhead_jpe_triggers.R'))
-
+source(here(project,'springrun_jpe_triggers.R'))
 
 ```
 # BACKGROUND
@@ -96,9 +97,61 @@ flextable(summary)%>%
 
 # CENTRAL VALLEY SPRING-RUN CHINOOK SALMON
 
-## Methodology
+## Background
+To assess incidental loss (“salvage”) of clipped, coded‑wire‐tagged juvenile Chinook salmon at salvage facilities, we compared daily cumulative counts against performance thresholds derived from annual juvenile production estimates (JPE). The objective was to identify the dates on which cumulative loss reached 0.5%, 0.75%, and 1.0% of the year’s JPE—key trigger points in our loss‐management framework.
+
+## Methods
+
+1. **Release Data**  
+   - Pulled weekly CWT release totals (Spring & Late‑Fall runs) for Coleman NFH (CNFH) and Feather River Hatchery (FRH) for water years (WY) 2011–2025 from the CBR ERDDAP endpoint.  
+   - Joined each WY’s release count with the best‐available survival estimate for that hatchery × run; missing years were back‑filled using the hatchery‑wide average survival‐rate.
+
+2. **Threshold Computation**  
+   - For each WY, computed annual JPE_total = ∑ (year’s releases × survival_rate).  
+   - Derived absolute thresholds: 0.5%, 0.75%, 1.0% of JPE_total.  
+
+3. **Cumulative Loss Analysis**  
+   - Merged daily loss with WY’s JPE thresholds.  
+   - For each WY, calculated cumulative loss by calendar date.  
+   - Identified the first date when cumulative loss ≥ 0.5%, 0.75%, 1.0% thresholds.  
+
+---
 
 ## Results
+
+### Threshold‐Crossing Dates  
+*Figure 2* lists, for each WY 2011–2025, the date on which cumulative loss first met or exceeded 0.5%, 0.75%, and 1.0% of JPE.  On average:
+
+- **0.5%** threshold was crossed by mid‑December (WY 2011–2015) or by early January (WY 2016–2025).  
+- **0.75% & 1.0%** thresholds were only crossed in realtively high‐production years; in many WYs cumulative loss never reached these levels.
+
+```{r, echo = FALSE, fig.width=9, fig.height=6, fig.cap = "Figure 2. Summary of Spring-run Chinook Salmon cumulative loss and associated thresholds by year",warning = FALSE, message = FALSE}
+plot2 <- sr_loss
+plot2
+```
+
+### Cumulative Loss Curves  
+*Table 2* shows the daily cumulative salvage for each water year, with dashed (0.5%), dot‐dash (0.75%), and dotted (1.0%) lines indicating JPE thresholds.  In high‐production years (e.g. WY 2013, WY 2021), losses reached all three thresholds by mid‑migration; in lower‐production years (e.g. WY 2016, WY 2020), cumulative loss remained below 0.5% throughout the season.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+# assume `summary_tbl` is your data frame
+flextable(summary_tbl) %>%
+  set_header_labels(
+    WY              = "Water Year",
+    JPE             = "JPE",
+    Total_Loss      = "Total Loss",
+    Proportion_Loss = "Proportion Loss",
+    `50% Trigger`   = "50% Trigger",
+    `75% Trigger`   = "75% Trigger",
+    `100% Trigger`  = "100% Trigger"
+  ) %>%
+  colformat_num(j = c("JPE","Total_Loss"), big.mark = ",", digits = 0) %>%
+  colformat_num(j = "Proportion_Loss", digits = 2) %>%
+  align(align = "center", part = "all") %>%
+  autofit() %>%
+  theme_zebra() %>%
+  set_caption(caption = 'Table 4. Summary of total and proportional loss and any associated trigger actions for Spring-run Chinook Salmon by year')
+```
 
 # REFERENCES
 Brodsky, A, S.C. Zeug, and J. Nelson. 2020. Does broodstock source affect post-release survival of steelhead?  Implications of replaceing a non-native hatchery stock for recover.  Environmental Biology of Fishes 103:437-453.
