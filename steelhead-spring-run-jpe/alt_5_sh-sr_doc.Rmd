@@ -1,0 +1,110 @@
+---
+title: "Hatchery Steelhead JPE - Alternative 5 assessment"
+author: "Chase Ehlo and Alex Vaisvil"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(flextable)
+library(here)
+
+project <- here('steelhead-spring-run-jpe') #setting path for any files
+source(here(project,'steelhead_jpe_triggers.R'))
+
+
+```
+# BACKGROUND
+
+Alternative 5 of a proposed action assessment indicates if annual loss is on a trajectory to exceed 1% of the JPE entering the Delta and a reduction in export pumping would increase through-Delta survival, Reclamation and DWR will reduce CVP and SWP exports to maintain an average OMRI no more negative than -3,500 cfs for 7 days and a subsequent assessment.  Using hatchery releases and telemetry studies conducted on hatchery steelhead we hindcast hatchery steelhead JPE, the proportion of those lost to the facility, and note any exceedances of 0.5%, 0.75%, and 1.0% of those JPEs historically from WY 2009-2024.
+
+# CENTRAL VALLEY STEELHEAD
+
+## Methodology
+
+We used high and low estimates of survival from telemetry studies of hatchery steelhead at Coleman National Fish Hatchery (CNFH), Feather River Fish Hatchery (FRFH), Nimbus Fish Hatchery (NMFH), and Mokelumne Fish Hatchery (MKFH) to represent the Sacramento River, Feather River, American River, and Mokelumne River respectively.
+
+Estimates of survival for CNFH were derived from Sandstrom et al. 2020 where survival from the release site to the Lower Sacramento River ranged between 20.5% and 43.3% and mean survival from the Lower Sacramento River to delta entry was 91.6% resulting in a conditional probability of low and high survival of 18.8% and 39.7% respectively. Estimates of survival for FRFH were derived from Kurth el al. 2013, an abstract submitted at a professional conference where they found that survival from release site in the Feather River downstream to delta entry ranged from 9% to 45%.
+
+Further downstream in the American River estimates were derived from Brodsky et al. (2020).  This again was calculated from conditional probability where they had high and low estimates of 88.4% and 95.9% from the release site to the Lower American River, 85.5% and 94.4% from the Lower American River downstream into the Sacramento River, and 81.6% and 92% from the Sacramento River further downstream to Steamboat Slough in the Delta.  Low and high survival of the conditional probability of these three sites were 62% and 83%. In the Central Delta and San Joaquin River, we derived estimates from Del Real and Workman (2011) for the Mokelumne River.  Low and High estimates of survival of hatchery fish from release site downstream into the delta study were 25% and 33% respectively.
+
+High and low estimates for each hatchery were used to create a gradient of estimates from Critically dry to wet water year types under the assumption that survival is positively correlated to wetter water year types (see table below).  These were then applied to total number stocked for each hatchery in each year between 2009 and 2024 based on water year type and hatchery specific JPEs were totaled into a single Central Valley JPE for each year.  The proportion of these fish that were historically entrained was estimated using historic loss estimates which was then used to hindcast historical exceedances based on the Alternative 5 language.  Historic loss was queried from SacPAS (https://www.cbr.washington.edu/sacramento/) which regularly downloads, cleans, queries, and calculates loss equation from the Salvage Access Database managed by CDFW and hosted at (https://filelib.wildlife.ca.gov/Public/salvage/Salvage_data_FTP/)
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+survival <- read_csv(here(project,'sh-input-data/survival.csv')) %>%
+  mutate(survival = paste0(round(survival * 100, 0),'%')) %>%
+  pivot_wider(names_from = 'hatchery', values_from = 'survival') %>%
+  rename('Water Year Type' = 'wy_type','Coleman National fish Hatchery' = 'CNFH', 'Feather River Fish Hatchery' = 'FRFH', 'Nimbus Fish Hatchery' = 'NMFH', 'Mokelumne Fish Hatchery' = 'MKFH')
+
+flextable(survival)%>%
+  vline()%>%
+  hline() %>%
+  border_outer() %>%
+  width(width = 1, unit = "in") %>%
+  font(fontname = 'Segoe UI', part = "body") %>%
+  font(fontname = 'Segoe UI Semibold', part = "header") %>%
+  fontsize(size = 12, part = "header") %>%
+  fontsize(size = 10, part = "body") %>%
+  set_caption(caption = 'Table. Summary of hatchery and water year type survival estimates for CCV steelhead from each hatchery')
+```
+
+
+## Results
+Estimates for a JPE using total fish stocked at each hatchery coupled with survival estimates in above table ranged from 202,658 to 841,656 between 2009 and 2024 (see table below).
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+jpe_summary <- jpe_hatch %>%
+  rename('Water Year' = 'wy','Coleman National fish Hatchery' = 'CNFH', 'Feather River Fish Hatchery' = 'FRFH', 'Nimbus Fish Hatchery' = 'NMFH', 'Mokelumne Fish Hatchery' = 'MKFH')
+
+flextable(jpe_summary)%>%
+  vline()%>%
+  hline() %>%
+  border_outer() %>%
+  width(width = 1, unit = "in") %>%
+  font(fontname = 'Segoe UI', part = "body") %>%
+  font(fontname = 'Segoe UI Semibold', part = "header") %>%
+  fontsize(size = 12, part = "header") %>%
+  fontsize(size = 10, part = "body") %>%
+  colformat_double(j = 1, big.mark = "", digits = 0) %>%
+  colformat_double(j = c(2:6), digits = 0) %>%
+  set_caption(caption = 'Table. Summary of juvenile production estimates for CCV steelhead by water year for individual hatcheries and all hatcheries combined')
+```
+
+Total loss in the 16 year time span ranged between 164 and 6,548 and proportional loss of the JPE ranged between 0.03 and 1.07% (see graph and table below).
+
+```{r, echo = FALSE, fig.width=9, fig.height=6, fig.cap = "Figure. Summary of CCV steelhead cumulative loss and associated thresholds by year",warning = FALSE, message = FALSE}
+plot <- loss_graph
+plot
+```
+
+A 50% threshold exceedance (0.5% of JPE) would have been triggered in 6 out of the 16 years analyzed (see graph above and table below).  A total of 3 of these years would have exceeded the 75% (0.75% of JPE) threshold, and only a single year, 2010, would have exceeded the 100% (1% of JPE) threshold.
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+
+flextable(summary)%>%
+  vline()%>%
+  hline() %>%
+  border_outer() %>%
+  width(width = 1, unit = "in") %>%
+  font(fontname = 'Segoe UI', part = "body") %>%
+  font(fontname = 'Segoe UI Semibold', part = "header") %>%
+  fontsize(size = 12, part = "header") %>%
+  fontsize(size = 10, part = "body") %>%
+  colformat_double(j = 1, big.mark = "", digits = 0) %>%
+  set_caption(caption = 'Table. Summary of total and proportional loss and any associated trigger actions for CCV steelhead by year')
+```
+
+# CENTRAL VALLEY SPRING-RUN CHINOOK SALMON
+
+## Methodology
+
+## Results
+
+# REFERENCES
+Brodsky, A, S.C. Zeug, and J. Nelson. 2020. Does broodstock source affect post-release survival of steelhead?  Implications of replaceing a non-native hatchery stock for recover.  Environmental Biology of Fishes 103:437-453.
+
+Del Real, S.C and M. Workman. 2011. Migration characteristics of hatchery and natural origin Oncorhynchus mykiss from the lower Mokelumne River, California. Environmental Biology of Fishes.
+
+Kurth, R and A. Hampton. 2016. Downstream migration success of Feather River Fish Hatchery steelhead smolts under different release strategies. Abstract for 2016 Pacific Coast Steelhead Management Meeting.
+
+Sandstrom, P.T., A.J. Ammann, C. Michael, G. Singer, E.D. Chapman, R.B. MacFarlane, S.T. Lindley, and A.P. Klimley. 2020. Low river survival of juvenile steelhead in the Sacramento River watershed.  Environmental Biology of Fishes 103:531-541.
